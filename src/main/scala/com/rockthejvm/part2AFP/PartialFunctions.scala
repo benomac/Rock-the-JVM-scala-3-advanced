@@ -73,10 +73,10 @@ object PartialFunctions {
   }
 
   def main(args: Array[String]): Unit = {
-    println(pfChain(45))
-    println(aFussyFunction_v2(1))
-    println(liftedPF(1)) // Some(42)
-    println(liftedPF(37)) // None
+//    println(pfChain(45))
+    println(aFussyFunction_v2(65461))
+//    println(liftedPF(1)) // Some(42)
+//    println(liftedPF(37)) // None
   }
 
 }

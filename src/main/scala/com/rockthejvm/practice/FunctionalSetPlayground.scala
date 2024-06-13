@@ -1,5 +1,6 @@
 package com.rockthejvm.practice
 
+
 import scala.annotation.tailrec
 
 abstract class FSet[A] extends (A => Boolean) {
@@ -28,11 +29,46 @@ abstract class FSet[A] extends (A => Boolean) {
 
   infix def &(anotherSet: FSet[A]): FSet[A]
 
-}
+  // "negation" == all the elements of type A EXCEPT the elements in this set
+  def unary_! : FSet[A] = new PBSet(x => !contains(x))
 
-//case class AllInclusiveSet[A]() extends FSet[A] {
-//
-//}
+}
+  // { x in N WHERE x % 2 == 0 }
+  //Property base Set
+class PBSet[A](property: A => Boolean) extends FSet[A] {
+
+    override def contains(elem: A): Boolean = property(elem)
+
+    override infix def +(elem: A): FSet[A] =
+      new PBSet(x => x == elem || property(x))
+
+    override infix def ++(anotherSet: FSet[A]): FSet[A] =
+      new PBSet(x => property(x) || anotherSet(x))
+
+    override def map[B](f: A => B): FSet[B] =
+      politelyFail()
+
+    override def flatMap[B](f: A => FSet[B]): FSet[B] =
+      politelyFail()
+
+    override def filter(predicate: A => Boolean): FSet[A] =
+      new PBSet(x => property(x) && predicate(x))
+
+    override def foreach(f: A => Unit): Unit = politelyFail()
+
+    override infix def -(elem: A): FSet[A] =
+      filter(x => x != elem)
+
+    override infix def --(anotherSet: FSet[A]): FSet[A] =
+      filter(!anotherSet)
+
+    override infix def &(anotherSet: FSet[A]): FSet[A] =
+      filter(anotherSet)
+
+    //extra utilities (internal)
+    private def politelyFail() = throw new RuntimeException("I don't know if this set is iterable")
+  }
+
 
 case class Empty[A]() extends FSet[A]:
   override def contains(elem: A): Boolean = false
@@ -130,6 +166,12 @@ object FunctionalSetPlayground {
     //    (first5 -- someNumber).foreach(print)
     //    println
     println(Set(1, 2, 3) -- Set(2, 3))
+
+    val naturals = new PBSet[Int](_ => true)
+    println(naturals.contains(123)) // true
+    println(!naturals.contains(0)) // false
+    println((!naturals + 1 + 2 + 3).contains(3)) //true
+    println(!naturals.map(_ + 1)) // throw
 
   }
 
